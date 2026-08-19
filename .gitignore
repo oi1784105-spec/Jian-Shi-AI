@@ -1,0 +1,40 @@
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.coverage
+**/htmlcov/
+**/venv/
+**/.venv/
+
+# Node.js
+**/node_modules/
+**/dist/
+**/.vite/
+
+# Local environment and secrets
+**/.env
+**/.env.*
+!**/.env.example
+**/.env.local
+
+# Runtime data
+**/*.log
+ai-interview-backend/logs/
+ai-interview-backend/uploads/
+**/celerybeat-schedule.db*
+**/uploads/
+**/logs/
+
+# Local deployment artifacts
+ai-interview-backend/docker-compose-linux-x86_64
+ai-interview-backend/ssl/
+**/*.sqlite
+**/*.sqlite3

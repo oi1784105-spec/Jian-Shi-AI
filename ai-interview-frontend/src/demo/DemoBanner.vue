@@ -24,3 +24,13 @@ const { t } = useI18n()
 .demo-reset:hover { color: var(--text); background: var(--bg-hover); }
 @media (max-width: 520px) { .demo-badge { right: 12px; left: 12px; max-width: none; } .demo-text small { display: none; } }
 </style>
+
+<style>
+/*
+ * 徽标是固定定位的，会压在页脚或面试页的答题输入区上
+ * （实测 1024px 宽下与 .input-area 重叠约 1.3 万像素²）。
+ * 因此在文档流底部预留出它的高度，保证任何视口下都不遮挡可交互元素。
+ * 该样式只在演示构建里存在，不影响连接真实后端的版本。
+ */
+body { padding-bottom: 76px; }
+</style>

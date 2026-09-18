@@ -4,6 +4,34 @@
 
 这个项目的重点不是简单调用一次大模型，而是把 AI 应用需要的完整链路做成可运行的系统：用户身份、个人模型配置、文件处理、异步任务、面试状态、流式响应、数据持久化和后台管理都包含在项目中。
 
+## 在线体验
+
+**👉 打开即用：[https://oi1784105-spec.github.io/Jian-Shi-AI/](https://oi1784105-spec.github.io/Jian-Shi-AI/)**
+
+登录页已经预填演示账号，直接点击「登录」即可走完整流程：
+
+```text
+登录 → 工作台（已预置面试记录） → API 配置（已预置 Provider）
+     → 上传简历（任意 PDF） → 解析与岗位分析 → 生成面试题
+     → 逐题作答 → 流式点评 → 综合评估报告
+```
+
+关于在线版需要说明的三点：
+
+- 它是**纯静态演示版**，托管在 GitHub Pages 上，所有数据由浏览器本地生成，**不会调用任何真实模型接口**，也不需要注册或填写 API Key。
+- 演示数据保存在浏览器 localStorage 中，随时可以点左下角的「重置演示数据」回到初始状态。
+- 想要真实的 AI 能力，请按下方「快速启动」在本地跑起前后端，并在 API 配置页填写自己的模型 Provider。
+
+## 页面预览
+
+| 面试记录 · 黑夜中文 | 面试记录 · 白昼 English |
+|---|---|
+| ![面试记录黑夜中文](docs/screenshots/interview-history-dark-zh.png) | ![Interview history light English](docs/screenshots/interview-history-light-en.png) |
+
+| API 配置 · 黑夜中文 | API 配置 · 白昼 English |
+|---|---|
+| ![API 配置黑夜中文](docs/screenshots/api-settings-dark-zh.png) | ![API settings light English](docs/screenshots/api-settings-light-en.png) |
+
 ## 项目定位
 
 传统面试练习通常只有静态题目，无法结合个人简历，也不能在回答后立即给出针对性反馈。简试把简历内容、目标岗位和面试上下文串联起来：
@@ -38,15 +66,20 @@
 - 管理员独立登录，查看用户、面试记录和基础运营数据。
 - 用户端 API 与管理端 API 分离，分别提供 Swagger 文档和 JWT 鉴权配置。
 
-## 页面预览
+## 在线演示版是怎么做的
 
-| 面试记录 · 黑夜中文 | 面试记录 · 白昼 English |
-|---|---|
-| ![面试记录黑夜中文](docs/screenshots/interview-history-dark-zh.png) | ![Interview history light English](docs/screenshots/interview-history-light-en.png) |
+在线版没有后端，却要能完整体验产品，因此前端内置了一个**演示层**（`ai-interview-frontend/src/demo/`），在浏览器里接管全部接口调用。
 
-| API 配置 · 黑夜中文 | API 配置 · 白昼 English |
+| 问题 | 做法 |
 |---|---|
-| ![API 配置黑夜中文](docs/screenshots/api-settings-dark-zh.png) | ![API settings light English](docs/screenshots/api-settings-light-en.png) |
+| 后端跑不了 | FastAPI + PostgreSQL + Redis + Celery 无法托管在 GitHub Pages 上，因此只发布前端静态产物。 |
+| 接口怎么来 | 在 **axios adapter** 层拦截：`request.js` 在演示构建下挂载本地适配器，返回后端约定的 `{ code, message, data }` 信封。9 个视图和 5 个 api 模块**一行都没有改动**。 |
+| 流式点评怎么做 | 答题接口用的是原生 `fetch` + `ReadableStream`，不走 axios；演示层用 `fetch` 垫片合成 `data: {...}` 事件流，逐字推送点评和评分。 |
+| 「解析中」怎么模拟 | 简历解析和报告生成用**时间戳**（`parse_ready_at` / `report_ready_at`）表达异步状态，而不是 setTimeout，因此刷新页面后状态依然正确。 |
+| 数据从哪来 | 预置了 1 个已启用 Provider、2 条面试记录（1 条已完成带报告、1 条进行中可继续作答），其余内容在浏览器本地按岗位关键词生成。 |
+| 评分怎么算 | 回答越长、命中的技术关键词越多、结构越清晰，得分越高，让「回答质量 → 评分」的因果关系可以被直观看到。 |
+
+演示层的实现分布在 6 个文件里，都不依赖 Vue，可以单独测试：`config` 意义上的入口是 `src/demo/index.js`，核心逻辑在 `store.js`（内存库与业务规则）、`data.js`（内容与生成器）、`adapter.js`（axios 适配器）、`fetch.js`（SSE 流）、`DemoBanner.vue`（演示提示条）。
 
 ## 系统架构
 
@@ -64,6 +97,9 @@
 ```text
 ai-interview/
 ├── ai-interview-frontend/       # 用户端 Vue 3 + Vite
+│   ├── src/views/               # 登录、工作台、简历上传、面试、报告、API 配置、个人中心
+│   ├── src/demo/                # 在线演示版的本地模拟层（仅演示构建启用）
+│   └── .env.demo                # 演示构建参数：演示模式 + Pages 子路径
 ├── ai-interview-admin/          # 管理端 Vue 3 + Vite
 ├── ai-interview-backend/        # FastAPI、模型、迁移和 Docker 配置
 │   ├── app/api/                 # Client / Backoffice API 路由
@@ -72,6 +108,7 @@ ai-interview/
 │   ├── app/schemas/             # Pydantic 请求与响应模型
 │   ├── app/core/                # 配置、日志、Celery 和安全基础设施
 │   └── migrations/              # Alembic 数据库迁移
+├── .github/workflows/           # GitHub Pages 自动发布流水线
 ├── docs/                        # 设计记录和页面截图
 ├── 部署文档.md
 └── README.md
@@ -136,6 +173,7 @@ PDF 提取是同步且偏 CPU 的操作，使用 `asyncio.to_thread` 放到线�
 | 数据和任务 | PostgreSQL 16、Redis 7、Celery |
 | 文件处理 | pdfplumber、PyPDF2 |
 | 部署 | Docker、Docker Compose、Ubuntu、Nginx（可选） |
+| 在线演示版 | GitHub Pages、GitHub Actions、浏览器端接口模拟层 |
 
 ## 快速启动
 
@@ -170,7 +208,34 @@ npm run dev
 | 用户端 API 文档 | `http://你的Ubuntu虚拟机IP:8006/client/docs` |
 | 管理端 API 文档 | `http://你的Ubuntu虚拟机IP:8006/backoffice/docs` |
 
-登录用户端后，在“API 配置”中填写个人 Provider，完成连接测试并启用后即可上传简历。
+登录用户端后，在「API 配置」中填写个人 Provider，完成连接测试并启用后即可上传简历。
+
+## 部署
+
+### 真实后端
+
+生产环境建议使用 Uvicorn 或 Gunicorn 托管后端，用 Nginx 统一提供 HTTPS、静态前端和 `/api` 反向代理，并使用独立的随机密钥。详见 [部署文档](部署文档.md)。
+
+### 在线演示版（GitHub Pages）
+
+演示版由 [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) 自动构建发布：推送到 `main` 且改动涉及前端时触发，也可以在 Actions 页面手动运行。
+
+```bash
+cd ai-interview-frontend
+npm ci
+npm run build:demo     # 等价于 vite build --mode demo
+```
+
+构建参数放在 `.env.demo` 中，本地与 CI 使用同一份配置：
+
+| 变量 | 作用 |
+|---|---|
+| `VITE_DEMO_MODE` | 打开演示模式，由浏览器本地的模拟层接管全部接口 |
+| `VITE_BASE` | 发布子路径，Pages 项目站点需要 `/<repo>/` |
+
+流水线会把 `index.html` 复制为 `404.html`，这样直接访问 `/dashboard` 这类前端路由不会出现 404 页面。
+
+要让同一个代码库连真实后端，只要不带 demo 模式构建（`npm run build`），并通过 `VITE_API_BASE_URL` 指向后端地址即可。
 
 ## 配置与项目边界
 
@@ -181,6 +246,8 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 ```
 
 AI Provider 的真实 API Key 由用户登录后在 API 配置页面填写，不放在 README、前端环境变量或公共 `.env` 中。当前 PDF 解析针对可提取文本的 PDF；扫描图片型简历需要接入 OCR。邮件、S3、Nginx 和 Celery Beat 是可选扩展，默认开发流程不依赖它们。模型输出质量取决于用户配置的供应商、模型、网络和账户额度。
+
+在线演示版的数据全部在浏览器本地生成，与真实后端无关；它只用于展示交互与页面结构，不代表真实模型输出质量。
 
 ## GitHub 上传前检查
 

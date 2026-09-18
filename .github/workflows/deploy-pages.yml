@@ -58,6 +58,10 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          # 仓库尚未开启 Pages 时，允许流水线用本次运行的 GITHUB_TOKEN 自动创建站点
+          # （依赖上方 permissions 里的 pages: write）。
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

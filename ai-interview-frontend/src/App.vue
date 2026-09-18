@@ -12,6 +12,7 @@
           <router-link to="/settings/api"><KeyRound :size="16" />{{ t('common.apiSettings') }}<span v-if="authStore.token && !aiProviderStore.configured" class="nav-dot" /></router-link>
         </nav>
         <div class="topbar-actions">
+          <DemoBanner />
           <span v-if="aiProviderStore.configured" class="provider-status"><span class="status-dot" />{{ aiProviderStore.activeProvider?.name }}</span>
           <PreferenceControls />
           <router-link to="/profile" class="profile-link">
@@ -30,8 +31,6 @@
       <div><strong>{{ t('common.brand') }}</strong><span>{{ t('footer.tagline') }}</span></div>
       <span>{{ t('footer.copyright') }}</span>
     </footer>
-
-    <DemoBanner />
   </div>
 </template>
 

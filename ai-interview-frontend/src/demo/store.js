@@ -152,6 +152,9 @@ function seed (target) {
     total: 3,
     skills: DEMO_RESUME_RESULT.parsed_content.skills
   })
+  // 已作答的题目数量。current_index 必须与之一致：
+  // 它决定访客继续作答时从第几题开始，写错会导致某道题被重复提问。
+  const runningScores = [7.8]
   const running = {
     interview_id: 1002,
     created_at: isoAgo(26 * 60 * 60 * 1000),
@@ -163,13 +166,13 @@ function seed (target) {
     overall_score: null,
     resume_id: 901,
     questions: runningQuestions,
-    current_index: 0,
+    current_index: runningScores.length,
     provider_name: SEED_PROVIDER.name,
     model: SEED_PROVIDER.default_model,
     report_ready_at: null,
     report: null
   }
-  const runningMessages = seedAnswers(running, [7.8])
+  const runningMessages = seedAnswers(running, runningScores)
 
   // 就地写入而不是返回新对象：seed() 内部会调用 nextId()，
   // 它依赖模块级 state 已经指向当前对象。

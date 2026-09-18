@@ -1,0 +1,77 @@
+name: Deploy online demo to GitHub Pages
+
+# 把用户端前端构建成「纯静态演示版」并发布到 GitHub Pages。
+#
+# 演示版不依赖任何后端：所有接口由浏览器本地的模拟层接管
+# （见 ai-interview-frontend/src/demo），因此可以直接托管在 Pages 上。
+# 真实后端仍需要 FastAPI + PostgreSQL + Redis，请参考 部署文档.md。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ai-interview-frontend/**'
+      - '.github/workflows/deploy-pages.yml'
+      - 'README.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只允许一个发布流程，新的推送会取消排队中的旧任务。
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build demo bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ai-interview-frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ai-interview-frontend
+        run: npm ci
+
+      - name: Build static demo
+        working-directory: ai-interview-frontend
+        # 构建参数放在 .env.demo 里（demo 模式 + Pages 子路径），
+        # 保证本地 `npm run build:demo` 与 CI 完全一致。
+        run: npm run build:demo
+
+      - name: Add SPA fallback
+        # Pages 没有服务端重写规则：把 index.html 复制成 404.html，
+        # 这样直接访问 /dashboard 这类前端路由不会出现 404 页面。
+        working-directory: ai-interview-frontend/dist
+        run: cp index.html 404.html
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ai-interview-frontend/dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

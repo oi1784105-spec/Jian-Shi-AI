@@ -59,8 +59,8 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
-          # 仓库尚未开启 Pages 时，允许流水线用本次运行的 GITHUB_TOKEN 自动创建站点
-          # （依赖上方 permissions 里的 pages: write）。
+          # 首次发布前需要在仓库 Settings → Pages 里把 Source 设为 "GitHub Actions"。
+          # 流水线自带的 GITHUB_TOKEN 没有创建站点的权限，无法代替这一步。
           enablement: true
 
       - name: Upload artifact

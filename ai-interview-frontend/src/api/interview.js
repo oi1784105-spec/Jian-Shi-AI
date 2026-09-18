@@ -10,7 +10,9 @@ export function submitAnswer(interviewId, answer) {
 
 export async function submitAnswerStream(interviewId, answer, onChunk, onDone) {
   const authStore = (await import('../stores/auth')).useAuthStore()
-  const response = await fetch(`/api/v1/interviews/${interviewId}/answer/stream`, {
+  // 与 request.js 使用同一套基址规则；演示模式下由 fetch 垫片接管该地址。
+  const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+  const response = await fetch(`${baseURL}/interviews/${interviewId}/answer/stream`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -8,6 +8,7 @@
       </section>
       <section class="auth-card card">
         <div class="auth-card-header"><p class="eyebrow">SIGN IN</p><h2>{{ t('auth.signIn') }}</h2></div>
+        <p v-if="DEMO_MODE" class="demo-note">{{ t('demo.loginHint') }}</p>
         <form @submit.prevent="handleLogin">
           <div class="form-group"><label>{{ t('auth.email') }}</label><input v-model="email" type="email" :placeholder="t('auth.emailPlaceholder')" required /></div>
           <div class="form-group"><label>{{ t('auth.password') }}</label><input v-model="password" type="password" :placeholder="t('auth.passwordPlaceholder')" required /></div>
@@ -29,8 +30,10 @@ import { useAuthStore } from '../stores/auth'
 import { login } from '../api/auth'
 import { getProfile } from '../api/user'
 import PreferenceControls from '../components/PreferenceControls.vue'
+import { DEMO_MODE, DEMO_CREDENTIALS } from '../demo'
 const { t } = useI18n(); const router = useRouter(); const authStore = useAuthStore()
-const email = ref(''); const password = ref(''); const error = ref(''); const loading = ref(false)
+// 演示构建下预填演示账号，访客点一下登录就能完整体验；真实环境保持空白。
+const email = ref(DEMO_MODE ? DEMO_CREDENTIALS.email : ''); const password = ref(DEMO_MODE ? DEMO_CREDENTIALS.password : ''); const error = ref(''); const loading = ref(false)
 async function handleLogin() { error.value = ''; loading.value = true; try { const data = await login(email.value, password.value); authStore.setAuth(data); try { authStore.setUserInfo(await getProfile()) } catch (_) {}; router.push('/dashboard') } catch (e) { error.value = e.message } finally { loading.value = false } }
 </script>
 
@@ -40,6 +43,6 @@ async function handleLogin() { error.value = ''; loading.value = true; try { con
 .auth-brand { display: inline-flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 750; margin-bottom: 76px; } .brand-mark { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; background: var(--primary); color: var(--primary-text); }
 .auth-intro h1 { max-width: 360px; margin-top: 18px; font-size: clamp(36px, 6vw, 62px); line-height: 1; font-weight: 650; letter-spacing: 0; } .auth-intro > p:not(.eyebrow) { max-width: 300px; margin-top: 22px; color: var(--text-soft); font-size: 16px; line-height: 1.7; }
 .intro-rule { width: 80px; height: 1px; margin: 76px 0 14px; background: var(--border-strong); } .auth-intro > span { color: var(--text-faint); font-size: 11px; } .auth-card { padding: 34px; } .auth-card-header { margin-bottom: 28px; } .auth-card h2 { margin-top: 8px; font-size: 26px; font-weight: 650; }
-.auth-submit { width: 100%; margin-top: 4px; } .form-message { margin: -4px 0 14px; } .auth-link { margin-top: 20px; color: var(--text-soft); font-size: 13px; text-align: center; } .auth-link a { color: var(--text); font-weight: 700; }
+.auth-submit { width: 100%; margin-top: 4px; } .form-message { margin: -4px 0 14px; } .auth-link { margin-top: 20px; color: var(--text-soft); font-size: 13px; text-align: center; } .auth-link a { color: var(--text); font-weight: 700; } .demo-note { margin-bottom: 18px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-soft); background: var(--bg-soft); font-size: 12px; line-height: 1.6; }
 @media (max-width: 720px) { .auth-page { padding: 84px 16px 28px; } .auth-toolbar { top: 20px; right: 16px; } .auth-layout { display: block; } .auth-intro { padding: 0 8px 28px; } .auth-brand { margin-bottom: 42px; } .auth-intro h1 { font-size: 42px; } .auth-intro > p:not(.eyebrow) { margin-top: 14px; } .intro-rule { margin-top: 32px; } .auth-card { padding: 24px 20px; } }
 </style>

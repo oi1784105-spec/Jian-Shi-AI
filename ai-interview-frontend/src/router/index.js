@@ -15,7 +15,8 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  // 使用构建时的 base，部署到 GitHub Pages 子路径下也能正确解析路由。
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
 

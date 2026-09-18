@@ -30,6 +30,8 @@
       <div><strong>{{ t('common.brand') }}</strong><span>{{ t('footer.tagline') }}</span></div>
       <span>{{ t('footer.copyright') }}</span>
     </footer>
+
+    <DemoBanner />
   </div>
 </template>
 
@@ -42,6 +44,7 @@ import { useAuthStore } from './stores/auth'
 import { getProfile } from './api/user'
 import PreferenceControls from './components/PreferenceControls.vue'
 import { useAiProviderStore } from './stores/aiProvider'
+import DemoBanner from './demo/DemoBanner.vue'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
